@@ -150,6 +150,13 @@ if has('mouse_sgr')
   set ttymouse=sgr
 endif
 
+" The flip side of a working mouse is that Vim now receives drags, so
+" click-dragging makes a Vim Visual selection and your terminal's own
+" select-to-copy never sees it. Hold Shift while dragging to bypass Vim
+" for one selection (Option in macOS Terminal.app), or use this toggle to
+" hand the mouse back to the terminal entirely.
+nnoremap <leader>tm :call kickstart#toggle_mouse()<CR>
+
 " Don't show the mode, since it's already in the (lightline) statusline.
 set noshowmode
 
@@ -397,6 +404,7 @@ let g:which_key_map.s = {
 let g:which_key_map.t = {
   \ 'name': '+[T]oggle',
   \ 'h': '[T]oggle Inlay [H]ints',
+  \ 'm': '[T]oggle [M]ouse (vim vs terminal selection)',
   \ }
 let g:which_key_map.h = {
   \ 'name': '+Git [H]unk',

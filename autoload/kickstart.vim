@@ -21,3 +21,23 @@ function! kickstart#toggle_inlay_hints() abort
   endif
   echo '[T]oggle Inlay [H]ints: ' . (g:lsp_inlay_hints_enabled ? 'enabled' : 'disabled')
 endfunction
+
+" Toggle whether Vim or the terminal owns the mouse.
+"
+" With 'mouse' set, Vim asks the terminal for button-event tracking, so a
+" click-drag becomes a Vim Visual selection and the terminal's own
+" select-to-copy never sees it. Clearing 'mouse' hands the mouse back.
+"
+" Most terminals also let you bypass Vim for a single drag by holding
+" Shift (iTerm2, xterm, GNOME Terminal, Windows Terminal, and tmux);
+" macOS Terminal.app uses Option. This toggle is for when you'd rather
+" not hold a modifier, or your terminal has no bypass.
+function! kickstart#toggle_mouse() abort
+  if empty(&mouse)
+    set mouse=a
+    echo '[T]oggle [M]ouse: vim (drag selects in vim; shift-drag to select in the terminal)'
+  else
+    set mouse=
+    echo '[T]oggle [M]ouse: terminal (drag selects and copies natively)'
+  endif
+endfunction
