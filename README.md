@@ -159,3 +159,7 @@ welcome to -- it's your fork). Three hooks, in load order:
 kickstart modules (debugger, file tree, linting, indent guides, autopairs)
 live in `kickstart/plugins/` and are enabled by uncommenting one line each
 in `vimrc` (SECTION 15).
+
+## License
+
+[MIT](LICENSE).
