@@ -136,6 +136,20 @@ set number
 " Enable mouse mode, can be useful for resizing splits, etc.
 set mouse=a
 
+" Tell Vim to speak the SGR mouse protocol. Neovim always does; Vim picks
+" the protocol from terminfo and lands on 'xterm' -- the 1981 X10 encoding,
+" which reports a click as three RAW BYTES of `32 + coordinate`. Past
+" column 95 those bytes go above 127, so Vim sees them as <M-x>/<81>-style
+" keys: the mouse stops working past column 223 entirely, and any plugin
+" sitting in a getchar() loop (vim-which-key, waiting after you press the
+" leader key) swallows them and reports "SPC <M-&> is undefined".
+" SGR encodes coordinates as decimal text instead, so it has neither
+" problem. Every terminal worth using, tmux included, supports it.
+"   :help 'ttymouse'
+if has('mouse_sgr')
+  set ttymouse=sgr
+endif
+
 " Don't show the mode, since it's already in the (lightline) statusline.
 set noshowmode
 
