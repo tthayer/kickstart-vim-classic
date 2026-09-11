@@ -484,7 +484,12 @@ if has('textprop')
 endif
 let g:lsp_document_highlight_enabled = 1
 let g:lsp_inlay_hints_enabled = 0
-let g:lsp_semantic_enabled = 0
+" Semantic tokens color identifiers by what they *are* (parameter, field,
+" type, ...) rather than by regex pattern -- needs Vim built with
+" +textprop (vim-classic has it), and the server itself has to actually
+" send them: clangd and rust-analyzer do by default, gopls only when asked
+" (see g:lsp_settings below).
+let g:lsp_semantic_enabled = 1
 let g:lsp_format_sync_timeout = 1000
 
 if g:have_nerd_font
@@ -499,10 +504,23 @@ else
   let g:lsp_diagnostics_signs_hint = { 'text': 'H' }
 endif
 
-" Example server settings (uncomment/extend as needed -- see
-" `:help g:lsp_settings` and https://github.com/mattn/vim-lsp-settings):
+" Per-server settings -- see `:help g:lsp_settings` and
+" https://github.com/mattn/vim-lsp-settings. `workspace_config` is the key
+" vim-lsp-settings actually reads for arbitrary per-server LSP settings
+" (it's sent to the server as `workspace/configuration`, which is how
+" gopls reads settings post-init -- `initialization_options` is a
+" different, startup-time-only field some other servers use instead, e.g.
+" rust-analyzer's `checkOnSave`). gopls's own `semanticTokens` option turns
+" ON the semantic-token *responses* this server sends; g:lsp_semantic_enabled
+" above is the separate vim-lsp-side switch that makes the *client* ask
+" for and render them -- both are required.
+let g:lsp_settings = {
+  \ 'gopls': { 'workspace_config': { 'gopls': { 'semanticTokens': v:true } } },
+  \ }
+"
+" Add other servers the same way, e.g.:
 " let g:lsp_settings = {
-"   \  'gopls': { 'workspace_config': { 'gopls': { 'directoryFilters': ['-node_modules'] } } },
+"   \  'gopls': { 'workspace_config': { 'gopls': { 'semanticTokens': v:true, 'directoryFilters': ['-node_modules'] } } },
 "   \  'lua-language-server': { 'workspace_config': { 'Lua': { 'diagnostics': { 'globals': ['vim'] } } } },
 "   \ }
 "
@@ -626,13 +644,26 @@ nnoremap <leader>f :ALEFix<CR>
 "   :LspDocumentFormat
 
 " ============================================================================
-" SECTION 11: COLORSCHEME (solarized8, tokyonight-vim)
+" SECTION 11: COLORSCHEME (solarized8, tokyonight)
 " ============================================================================
-" Two colorschemes are installed; solarized8 (dark) is the default.
+" Two colorschemes are available; solarized8 (dark) is the default.
 " vim-solarized8 is the maintained, true-color port of Solarized (the
 " original altercation/vim-colors-solarized predates 'termguicolors').
 Plug 'lifepillar/vim-solarized8'
-Plug 'ghifarit53/tokyonight-vim'
+
+" tokyonight is NOT a plugin here -- it's an in-repo, legacy-Vimscript port
+" of folke/tokyonight.nvim living at `colors/tokyonight.vim` (plus a
+" matching lightline theme at `autoload/lightline/colorscheme/tokyonight.
+" vim`, see SECTION 13). This repo used to vendor the third-party
+" `ghifarit53/tokyonight-vim` plugin instead, but that plugin maps
+" highlight groups to different colors than folke/tokyonight.nvim actually
+" uses (e.g. its Identifier/Keyword colors are swapped relative to
+" upstream, and it predates Treesitter, so it can't give the
+" keyword/function/field/parameter distinctions kickstart.nvim users are
+" used to seeing). Porting the real upstream tables directly avoids both
+" problems, at the cost of it being a file in this repo instead of a
+" `Plug` line -- see `colors/tokyonight.vim`'s header for the full mapping
+" notes.
 
 " Which one to use, and light or dark. Three ways to change this:
 "   1. Edit the two defaults right here.
@@ -712,8 +743,9 @@ endfunction
 
 " Keep the statusline theme in step with the editor colorscheme: whenever
 " `:colorscheme X` runs, pick lightline's matching theme if one exists
-" (lightline bundles `solarized`; tokyonight-vim ships its own) and fall
-" back to lightline's default otherwise. This also fires when you change
+" (lightline bundles `solarized`; this repo ships
+" `autoload/lightline/colorscheme/tokyonight.vim`) and fall back to
+" lightline's default otherwise. This also fires when you change
 " colorscheme from custom/config/ or at runtime.
 function! s:lightline_sync_colorscheme() abort
   let l:name = get(g:, 'colors_name', 'default')
@@ -757,6 +789,22 @@ let g:lightline = {
 " handles "sensible" options, so we disable polyglot's overlapping bits to
 " avoid the two fighting each other.
 let g:polyglot_disabled = ['sensible', 'autoindent']
+
+" vim-go's syntax file (bundled by polyglot) highlights only keywords,
+" types, and strings unless asked; these opt-ins color function names,
+" calls, fields, parameters, operators, and builtin types too -- the
+" closest regex highlighting gets to Treesitter's per-node coloring.
+let g:go_highlight_functions = 1
+let g:go_highlight_function_calls = 1
+let g:go_highlight_function_parameters = 1
+let g:go_highlight_fields = 1
+let g:go_highlight_types = 1
+let g:go_highlight_extra_types = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_format_strings = 1
+let g:go_highlight_build_constraints = 1
+let g:go_highlight_generate_tags = 1
+
 Plug 'sheerun/vim-polyglot'
 
 " ============================================================================
