@@ -32,6 +32,11 @@ let g:ale_fix_on_save = 0
 nnoremap <leader>w :write<CR>
 ```
 
+For the colorscheme specifically, a `custom/plugins/*.vim` file can also set
+`let g:kickstart_colorscheme = 'tokyonight'` and
+`let g:kickstart_background = 'light'` to change the defaults vimrc applies
+(default: `solarized8`, `dark`).
+
 ## ~/.vimrc.local -- per-machine, outside the repo
 
 Sourced after `custom/config/` if it exists. Use it for things you never

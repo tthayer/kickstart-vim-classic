@@ -626,18 +626,34 @@ nnoremap <leader>f :ALEFix<CR>
 "   :LspDocumentFormat
 
 " ============================================================================
-" SECTION 11: COLORSCHEME (tokyonight-vim)
+" SECTION 11: COLORSCHEME (solarized8, tokyonight-vim)
 " ============================================================================
+" Two colorschemes are installed; solarized8 (dark) is the default.
+" vim-solarized8 is the maintained, true-color port of Solarized (the
+" original altercation/vim-colors-solarized predates 'termguicolors').
+Plug 'lifepillar/vim-solarized8'
 Plug 'ghifarit53/tokyonight-vim'
+
+" Which one to use, and light or dark. Three ways to change this:
+"   1. Edit the two defaults right here.
+"   2. Set them in a custom/plugins/*.vim file (sourced before this point,
+"      which is why `get()` only fills in a default if you haven't):
+"        let g:kickstart_colorscheme = 'tokyonight'
+"        let g:kickstart_background = 'light'
+"   3. Just run `colorscheme whatever` in a custom/config/*.vim file --
+"      that's sourced after the default is applied, so it simply wins.
+" `:colorscheme <Tab>` lists everything installed; solarized8 also ships
+" solarized8_flat / solarized8_high / solarized8_low variants.
+let g:kickstart_colorscheme = get(g:, 'kickstart_colorscheme', 'solarized8')
+let g:kickstart_background = get(g:, 'kickstart_background', 'dark')
 
 let g:tokyonight_style = 'night'
 let g:tokyonight_enable_italic = 0
 let g:tokyonight_disable_italic_comment = 1
 
-" `:colorscheme <Tab>` lets you browse every installed colorscheme. The
-" `:colorscheme tokyonight` call itself has to happen AFTER plug#end() (see
-" the bottom of this file) -- the plugin's colors/tokyonight.vim isn't on
-" 'runtimepath' yet at this point, mid plug#begin()/plug#end() block.
+" The `colorscheme` call itself happens AFTER plug#end() (see the bottom of
+" this file) -- the plugins' colors/*.vim files aren't on 'runtimepath' yet
+" at this point, mid plug#begin()/plug#end() block.
 
 " ============================================================================
 " SECTION 12: TODO COMMENTS
@@ -694,11 +710,30 @@ function! LightlineLocation() abort
   return line('.') . ':' . col('.')
 endfunction
 
-" VERIFIED: ghifarit53/tokyonight-vim ships
-" autoload/lightline/colorscheme/tokyonight.vim, so lightline can match the
-" editor colorscheme exactly instead of falling back to a bundled one.
+" Keep the statusline theme in step with the editor colorscheme: whenever
+" `:colorscheme X` runs, pick lightline's matching theme if one exists
+" (lightline bundles `solarized`; tokyonight-vim ships its own) and fall
+" back to lightline's default otherwise. This also fires when you change
+" colorscheme from custom/config/ or at runtime.
+function! s:lightline_sync_colorscheme() abort
+  let l:name = get(g:, 'colors_name', 'default')
+  if l:name =~# '^solarized'
+    let l:name = 'solarized'
+  endif
+  if empty(globpath(&runtimepath, 'autoload/lightline/colorscheme/' . l:name . '.vim'))
+    let l:name = 'default'
+  endif
+  let g:lightline.colorscheme = l:name
+  if exists('*lightline#init')
+    call lightline#init()
+    call lightline#colorscheme()
+    call lightline#update()
+  endif
+endfunction
+autocmd kickstart_init ColorScheme * call s:lightline_sync_colorscheme()
+
 let g:lightline = {
-  \ 'colorscheme': 'tokyonight',
+  \ 'colorscheme': 'solarized',
   \ 'active': {
   \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified' ] ],
   \   'right': [ [ 'location' ] ],
@@ -754,11 +789,12 @@ call plug#end()
 " ---- everything below this line runs after all plugins are on
 " ---- 'runtimepath', i.e. after plug#end().
 
-" Apply the colorscheme configured in SECTION 11, now that
-" colors/tokyonight.vim is actually reachable. Wrapped in try/catch so a
+" Apply the colorscheme configured in SECTION 11, now that the plugins'
+" colors/*.vim files are actually reachable. Wrapped in try/catch so a
 " first run (before :PlugInstall has completed) doesn't hard-error.
+let &background = g:kickstart_background
 try
-  silent! colorscheme tokyonight
+  execute 'colorscheme' g:kickstart_colorscheme
 catch
 endtry
 
