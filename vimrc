@@ -94,6 +94,15 @@ if filereadable(expand('$VIMRUNTIME/defaults.vim'))
   source $VIMRUNTIME/defaults.vim
 endif
 
+" [[ Syntax highlighting & filetype detection ]]
+" defaults.vim only turns these on when it thinks the terminal has colors
+" (`&t_Co > 2`), so a misdetected $TERM leaves you with no highlighting at
+" all. Set them unconditionally: per-language syntax highlighting, filetype
+" detection, filetype-specific plugins (ftplugin/) and indent rules.
+"   :help :syntax-on   :help :filetype-overview
+syntax enable
+filetype plugin indent on
+
 " ============================================================================
 " SECTION 1: OPTIONS
 " ============================================================================
