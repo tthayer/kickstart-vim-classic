@@ -1,0 +1,11 @@
+" custom/plugins/example.vim.disabled
+"
+" Rename this file to example.vim to enable it -- the .disabled suffix
+" means it does not match custom/plugins/*.vim and so vimrc skips it.
+Plug 'tpope/vim-fugitive'
+
+let g:fugitive_summary_format = '%s'
+
+nnoremap <leader>gs :Git<CR>
+
+autocmd VimEnter * echom 'custom/plugins/example.vim: vim-fugitive loaded'

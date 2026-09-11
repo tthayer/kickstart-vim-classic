@@ -1,0 +1,26 @@
+" custom/config/example.vim.disabled
+"
+" Rename this file to example.vim to enable it. Files in custom/config/ are
+" sourced LAST, after every plugin is loaded and the colorscheme is set, so
+" anything here overrides the defaults in vimrc.
+
+" Options
+set relativenumber
+set nowrap
+
+" A different colorscheme (try `:colorscheme <Tab>` to see what's installed)
+colorscheme desert
+
+" Plugin settings -- turn off format-on-save globally
+let g:ale_fix_on_save = 0
+
+" Extra mappings (register them with which-key too, if you like)
+nnoremap <leader>w :write<CR>
+let g:which_key_map.w = '[W]rite buffer'
+
+" Plugin function calls work directly here (no VimEnter deferral needed)
+call lsp#register_server({
+  \ 'name': 'example-ls',
+  \ 'cmd': ['example-language-server', '--stdio'],
+  \ 'allowlist': ['example'],
+  \ })
