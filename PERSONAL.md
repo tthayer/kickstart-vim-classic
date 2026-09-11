@@ -10,10 +10,13 @@ points `main` already provides, so `git rebase main` should stay clean.
 ## What this branch adds
 
 **vim-clap** (`custom/plugins/clap.vim`, `custom/config/clap.vim`) replaces
-fzf.vim as the fuzzy picker and adds real Tree-sitter syntax highlighting
-for ordinary buffers. The `<leader>s*` keys keep their meanings and only
-change provider. fzf.vim stays installed, so `:Files`, `:Rg`, and
+fzf.vim as the fuzzy picker. The `<leader>s*` keys keep their meanings and
+only change provider. fzf.vim stays installed, so `:Files`, `:Rg`, and
 `:Buffers` still work if you want to compare.
+
+vim-clap can also do real Tree-sitter highlighting of ordinary buffers.
+That part is **off by default** because testing showed it only half works
+on Vim. See below.
 
 Two keys are new, plus two for the highlighter:
 
@@ -48,12 +51,40 @@ plugged/vim-clap/bin/maple version
 
 If that file is missing, run `:Clap install-binary!` inside Vim.
 
-Tree-sitter highlighting turns itself on shortly after startup. To do it
-manually, or to check whether it is running:
+## Tree-sitter highlighting, and why it is off
+
+Set `g:kickstart_clap_tree_sitter = 1` to try it. Tested against
+vim-classic 8.3 with maple v0.55, it has two real problems.
+
+**It highlights each buffer exactly once.** Every refresh afterwards
+throws `E968` and the highlights go stale. vim-clap's non-Neovim path
+calls `prop_remove({'types': [...]})`, but Vim's `prop_remove()` has no
+`types` key, only singular `type` and `id`. Reproduced directly:
 
 ```vim
-:ClapAction treeSitterHighlight
+call prop_remove({'types': ['x']}, 1, 1)
+" E968: Need at least one of 'id' or 'type'
 ```
+
+The first pass survives only because it skips `prop_remove` entirely. The
+config re-runs the action on `BufWritePost` as a partial workaround.
+
+**On Go it is not clearly better than the regex syntax.** It wins on
+struct fields, which vim-polyglot gives no group at all. It ties on
+parameters. It loses on builtins: regex tags `len` as `goBuiltins`, while
+Tree-sitter leaves it a plain identifier. Function definitions and calls
+both come back as `property`, so it does not even draw the distinction
+that makes Tree-sitter worth wanting.
+
+To drive it by hand, note that actions are namespaced `<plugin-id>.<action>`.
+The bare name silently does nothing:
+
+```vim
+:ClapAction syntax.treeSitterHighlight
+```
+
+None of this is documented upstream, and the changelog still names an
+action that no longer exists.
 
 To render the whole buffer instead of only the visible lines, create
 maple's config file and add:
