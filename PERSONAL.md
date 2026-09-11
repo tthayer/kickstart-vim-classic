@@ -27,7 +27,13 @@ Two keys are new, plus two for the highlighter:
 | `<leader>tt` | Toggle Tree-sitter highlighting |
 | `<leader>tp` | Show the Tree-sitter capture under the cursor |
 
-## Why it is not on main
+**Mouse off** (`custom/config/mouse.vim`). `main` sets `mouse=a` like
+kickstart.nvim, which makes Vim request terminal mouse tracking, so
+click-drag becomes a Vim Visual selection and Ghostty never sees it. This
+branch hands the mouse back so select-to-copy works. `<leader>tm` still
+grabs it when you want to drag a split boundary.
+
+## Why vim-clap is not on main
 
 vim-clap parses buffers in `maple`, a Rust binary it ships separately.
 That means a compiled dependency, highlights that arrive asynchronously
