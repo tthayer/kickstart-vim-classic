@@ -221,13 +221,19 @@ set shortmess+=c  " Don't show "match 1 of 2" etc. messages during completion.
 set completeopt=menuone,noinsert,noselect
 
 " True color support, if the terminal can do it.
-"   :help termguicolors
-" NOTE: inside tmux you may also need:
-"   set t_8f=\<Esc>[38;2;%lu;%lu;%lum
-"   set t_8b=\<Esc>[48;2;%lu;%lu;%lum
-" so that Vim knows how to *emit* 24-bit color through tmux's escape codes,
-" even though it can already *detect* that the terminal supports it.
+"   :help termguicolors   :help xterm-true-color
+" Vim only fills in the escape sequences it uses to *emit* 24-bit color
+" (t_8f / t_8b) when $TERM starts with "xterm". Under tmux
+" ($TERM=tmux-256color), screen, and some terminals they stay empty, and
+" with 'termguicolors' on that means NO colors at all -- not even the
+" 256-color fallback. So set them explicitly whenever they're missing.
+" If your terminal truly can't do 24-bit color, put `set notermguicolors`
+" in custom/config/ to fall back to 256 colors.
 if has('termguicolors')
+  if empty(&t_8f)
+    let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+    let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  endif
   set termguicolors
 endif
 
